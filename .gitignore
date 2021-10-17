@@ -72,3 +72,15 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+WFCPlayground/.idea/.idea.WFCPlayground/.idea/
+
+WFCPlayground/Binaries/
+
+WFCPlayground/Intermediate/
+
+WFCPlayground/Saved/
+
+WFCPlayground/Source/WFCPlayground.Target.cs
+
+WFCPlayground/Source/WFCPlaygroundEditor.Target.cs
