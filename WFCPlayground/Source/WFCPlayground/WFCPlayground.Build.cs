@@ -7,8 +7,14 @@ public class WFCPlayground : ModuleRules
 	public WFCPlayground(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		// PCHUsage = PCHUsageMode.NoSharedPCHs;
+		// PrivatePCHHeaderFile = "$pch.h";
+		CppStandard = CppStandardVersion.Cpp17;
+		
+		// PublicIncludePaths.Add("C:/WorkFast/WCF_Playground/WFCPlayground/Source/LibSL");
+		bEnableUndefinedIdentifierWarnings = false;
+
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","WFC"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
