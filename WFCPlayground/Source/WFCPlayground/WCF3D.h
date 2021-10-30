@@ -58,6 +58,7 @@ THE SOFTWARE.
 #include <map>
 #include <queue>
 #include <cstring>
+#include "LibSL/LibSL.h"
 
 // --------------------------------------------------------------
 
@@ -326,6 +327,8 @@ bool init_global_soup(Array3D<Presence>& S,int lbl_empty = -1)
 
 /* -------------------------------------------------------- */
 
+//initialisation de la surface avec tous nos voxels vides
+
 // Initializes the domain with an empty assignment.
 // If lbl_ground is given, a ground is created on z == 0
 bool init_global_empty(Array3D<Presence>& S, int lbl_empty,int lbl_ground=-1)
@@ -526,7 +529,7 @@ bool synthesize(
 //   ForIndex(i, sx) { ForIndex(j, sy) { ForIndex(k, sizeVolume) {
 //         fread(&_voxels.at(i, j, k), sizeof(uchar), 1, f);
 //   } } }
-//   _palette.allocate(256);
+//   _palettegrid;
 //   fread(_palette.raw(), sizeof(v3b), 256, f);
 //   fclose(f);
 // }
@@ -583,137 +586,24 @@ bool synthesize(
 //   // ready!
 // }
 
-/* -------------------------------------------------------- */
+void Create3DProblem()
+{
+  //je crée une grille
+  Array3D<uchar> grid;
+  grid.allocate(5, 5, 5);//taille 5 par 5
+  cout << "grid created"<<endl;
 
-// // Saves a voxel file (.slab.vox format, can be imported by MagicaVoxel)
-// void saveAsVox(const char *fname,const Array3D<Presence>& S)
-// {
-//   FILE *f;
-//   f = fopen(fname, "wb");
-//   sl_assert(f != NULL);
-//   long sx = S.xsize(), sy = S.ysize(), sizeVolume = S.zsize();
-//   fwrite(&sx, 4, 1, f);
-//   fwrite(&sy, 4, 1, f);
-//   fwrite(&sizeVolume, 4, 1, f);
-//   ForIndex(i, sx) {
-//     ForIndex(j, sy) {
-//       ForRangeReverse(k, sizeVolume-1, 0) {
-//         int id = -1;
-//         ForIndex(l, num_lbls) {
-//           if (S.at(i, j, k)[l]) {
-//             id = l;
-//             break;
-//           }
-//         }
-//         sl_assert(id > -1);
-//         uchar pal = id2pal[id];
-//         fwrite(&pal, sizeof(uchar), 1, f);
-//       }
-//     }
-//   }
-//   fwrite(palette.raw(), sizeof(v3b), 256, f);
-//   fclose(f);
-// }
+  //j'initialise mes labels
+  set<uchar> labels;
+  ForArray3D(grid, i, j, k)
+  {
+    uchar lbl = grid.at(i, j, k);
+    labels.insert(lbl);
+  }
+  cout << "labels created of size "<<labels.size()<<endl;
 
-/* -------------------------------------------------------- */
+}
 
-// Saves a voxel file (.slab.vox format, can be imported by MagicaVoxel)
-// This function takes as input a low res and high res tile map. The low res
-// voxel grid locates detailed tiles in the high res grid. For instance,
-// if palette index 128 appears at (1,2,3) in low res, and the tile size is
-// 8x8x8, the detailed tile for palette index 128 is expected to be at 
-// (8,16,24) in the high res voxel grid.
-// It is expected the low res and high res grid sizes correspond exactly
-// through the tile size. If the low res grid is WxHxD and the tile size 
-// is 8x8x8 then the high res grid has to be 8Wx8Hx8D.
-
-// void saveAsVoxDetailed(
-//   const char *flow,
-//   const char *fdetailed,
-//   const char *fout,
-//   const Array3D<Presence>& S)
-// {
-//   uchar solid_color = 246; // from MagicaVoxel default palette
-//   // load high res voxels
-//   Array3D<uchar> highres;
-//   loadFromVox(fdetailed, highres, palette);
-//   // get corresponding low res voxels
-//   Array3D<uchar> lowres;
-//   loadFromVox(flow, lowres, palette);
-//   // find out detailed tiles
-//   map<uchar, v3i > pal2pos;
-//   int tx, ty, tz;
-//   // tile size
-//   tx = highres.xsize() / lowres.xsize();
-//   ty = highres.ysize() / lowres.ysize();
-//   tz = highres.zsize() / lowres.zsize();
-//   std::cerr << "Tile size: " << tx << ',' << ty << ',' << tz << std::endl;
-//   // find out detailed tiles: parse low res, check high res for details
-//   ForIndex(i, lowres.xsize()) { ForIndex(j, lowres.ysize()) { ForIndex(k, lowres.zsize()) {
-//     uchar pal = lowres.at(i, j, k);
-//     if (pal < 255) {
-//       // no detailed tile known?
-//       if (pal2pos.find(pal) == pal2pos.end()) {
-//         // check if details exists in high res voxels
-//         bool has_details = false;
-//         bool is_empty = true;
-//         ForIndex(tk, tz) { ForIndex(tj, ty) { ForIndex(ti, tx) {
-//               uchar v = highres.at(i * tx + tx - 1 - ti, j * ty + ty - 1 - tj, k * tz + tz - 1 - tk);
-//               if (v == 255) {
-//                 has_details = true;
-//               } else {
-//                 is_empty = false;
-//               }
-//         } } }
-//         if (has_details && !is_empty) {
-//           // ok!
-//           pal2pos[pal] = v3i(i, j, k);
-//         }
-//       } // not known
-//     } // lbl < 255
-//   } } }
-//   // output detailed version
-//   FILE *f = fopen(fout, "wb");
-//   sl_assert(f != NULL);
-//   long sx = tx*S.xsize(), sy = ty*S.ysize(), sizeVolume = tz*S.zsize();
-//   fwrite(&sx, 4, 1, f);
-//   fwrite(&sy, 4, 1, f);
-//   fwrite(&sizeVolume, 4, 1, f);
-//   // build high res grid
-//   Array3D<uchar> detailed;
-//   detailed.allocate(sx, sy, sizeVolume);
-//   detailed.fill(255);
-//   ForIndex(k, S.zsize()) { ForIndex(j, S.ysize()) { ForIndex(i, S.xsize()) {
-//     int id = -1;
-//     ForIndex(l, num_lbls) {
-//       if (S.at(i, j, k)[l]) {
-//         id = l;
-//         break;
-//       }
-//     }
-//     sl_assert(id > -1);
-//     uchar lbl = id2pal[id];
-//     if (lbl < 255) {
-//       // output high res tile
-//       if (pal2pos.find(lbl) != pal2pos.end()) {
-//         v3i pos = pal2pos[lbl];
-//         ForIndex(tk, tz) { ForIndex(tj, ty) { ForIndex(ti, tx) {
-//               detailed.at(i*tx + ti, j*ty + tj, k*tz + tk)
-//                 = (highres.at(pos[0] * tx + tx - 1 - ti, pos[1] * ty + ty - 1 - tj, pos[2] * tz + tz - 1 - tk) != 255 ? solid_color : 255);
-//         } } }
-//       } else {
-//         ForIndex(tk, tz) { ForIndex(tj, ty) { ForIndex(ti, tx) {
-//               detailed.at(i*tx + ti, j*ty + tj, k*tz + tk) = solid_color;
-//         } } }
-//       }
-//     }
-//   } } }
-//   ForIndex(i, sx) { ForIndex(j, sy) { ForRangeReverse(k, sizeVolume - 1, 0) {
-//         fwrite(&detailed.at(i, j, k), sizeof(uchar), 1, f);
-//   } } }
-//   fwrite(palette.raw(), sizeof(v3b), 256, f);
-//   fclose(f);
-// }
 
 /* -------------------------------------------------------- */
 
@@ -729,14 +619,25 @@ bool synthesize(
 // Whether everything can be determined automatically is an interesting
 // (and likely difficult) question.
 
+class LStream : public std::stringbuf{
+protected:
+  int sync() {
+    UE_LOG(LogTemp, Log, TEXT("%s"), *FString(str().c_str()));
+    str("");
+    return std::stringbuf::sync();
+  }
+};
+
+
 void solve3D()
 {
-  // Timer tm("solve3D");
-
-  // string fullpath = string(SRC_PATH "/exemplars/") + problem + ".slab.vox";
+  LStream* stream = new LStream();
+  std::cout.rdbuf(stream);
+  std::cout << "test cout to log ! "<<std::endl;
 
   // //// setup a 3D problem
   // load3DProblem(fullpath.c_str());
+  Create3DProblem();
 
   // array being synthesized
   UE_LOG(LogTemp, Warning, TEXT("solving") );
