@@ -7,6 +7,7 @@
 #include "JcoGridSlot.generated.h"
 
 class UJcoWFCPossibility;
+enum Directions;
 
 UCLASS()
 class WFCPLAYGROUND_API AJcoGridSlot : public AActor
@@ -28,4 +29,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<UJcoWFCPossibility*> possibilities;
+
+	void RestrictPossibilities(AJcoGridSlot* collapsedSlot,TEnumAsByte<Directions> dir);
 };

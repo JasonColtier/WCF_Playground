@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include <vector>
-
-#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "JcoWFCPossibility.h"
+#include "WFCPlayground/TRACE.h"
+#include "JcoGridSlot.h"
 #include "JcoGrid.generated.h"
 
 class AJcoGridSlot;
+typedef TArray<TPair<AJcoGridSlot*,TEnumAsByte<Directions>>> Neighbours;
 
 UCLASS()
 class WFCPLAYGROUND_API AJcoGrid : public AActor
@@ -17,6 +16,7 @@ class WFCPLAYGROUND_API AJcoGrid : public AActor
 	GENERATED_BODY()
 	
 public:
+
 	
 	/**
 	* \brief un solt contenu dans la Grid. Il contient les possibilités 
@@ -58,6 +58,8 @@ public:
      * \brief Print tous les éléments de la grille
      */
     void Print();
+
+	void PrintNeighbours(Neighbours neighbours);
 	
 	/**
 	 * \return Retourne un slot de la grille aux coordonnées voulues
@@ -74,7 +76,9 @@ public:
 	/**
 	 * \return Retourne les voisins d'une cellule
 	 */
-	void getNeibourghs(FVector coordinates,TArray<AJcoGridSlot*>& neighbours);
+	void getNeibourghs(AJcoGridSlot* collapsedSlot, Neighbours& neighbours);
+
+
 
 	bool isCollapsed();
 	
