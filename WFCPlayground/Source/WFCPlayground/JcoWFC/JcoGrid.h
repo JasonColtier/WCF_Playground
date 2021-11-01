@@ -78,25 +78,11 @@ public:
 	 */
 	void getNeibourghs(AJcoGridSlot* collapsedSlot, Neighbours& neighbours);
 
-
-
 	bool isCollapsed();
-	
-	//todo collapse !
-	// get le min enthropy
-	// choisi random une possibilité
-	// récupère tous les voisins
-	// update leurs possibilités en fonction des contraintes
-	// repeat
-
-	//exemple : GC GC   GC GC  >C  C   
-	//			GC GC  >G  G    G  G
-
-	//exemple : GC GC   C  C
-	//			GC GC  >C  C
 
 	void Collapse();
 	
+	void DisplaySlots();
 	
 protected:
 	// Called when the game starts or when spawned

@@ -97,12 +97,12 @@ AJcoGridSlot* AJcoGrid::getMinEnthropySlot()
 
     for (auto slot : grid)
     {
-        if (slot->possibilities.Num() < minEnthropySlots[0]->possibilities.Num())
+        if (slot->possibilities.Num() > minEnthropySlots[0]->possibilities.Num() && slot->possibilities.Num() > 1)
         {
             minEnthropySlots.Empty();
             minEnthropySlots.Add(slot);
         }
-        else if (slot->possibilities.Num() == minEnthropySlots[0]->possibilities.Num())
+        else if (slot->possibilities.Num() == minEnthropySlots[0]->possibilities.Num() && slot->possibilities.Num() > 1)
         {
             minEnthropySlots.Add(slot);
         }
@@ -113,25 +113,23 @@ AJcoGridSlot* AJcoGrid::getMinEnthropySlot()
 
 void AJcoGrid::getNeibourghs(AJcoGridSlot* collapsedSlot, Neighbours& neighbours)
 {
-
-    if(((int)collapsedSlot->coordinates.Z +1) % sizeZ != 0 )
-        neighbours.Add(TPair<AJcoGridSlot*,Directions>(grid[collapsedSlot->gridIndex + 1],Directions::top));
+    if (((int)collapsedSlot->coordinates.Z + 1) % sizeZ != 0)
+        neighbours.Add(TPair<AJcoGridSlot*, Directions>(grid[collapsedSlot->gridIndex + 1], Directions::top));
 
     if (((int)collapsedSlot->coordinates.Z) % sizeZ != 0)
-        neighbours.Add(TPair<AJcoGridSlot*,Directions>(grid[collapsedSlot->gridIndex - 1],Directions::bottom));
-    
-    if (((int)collapsedSlot->coordinates.Y +1) % sizeY != 0)
-        neighbours.Add(TPair<AJcoGridSlot*,Directions>(grid[collapsedSlot->gridIndex + sizeZ],Directions::front));
-    
-    if (((int)collapsedSlot->coordinates.Y) % sizeY != 0)
-        neighbours.Add(TPair<AJcoGridSlot*,Directions>(grid[collapsedSlot->gridIndex - sizeZ],Directions::back));
-    
-    if (((int)collapsedSlot->coordinates.X +1) % sizeX != 0)
-        neighbours.Add(TPair<AJcoGridSlot*,Directions>(grid[collapsedSlot->gridIndex + (sizeY * sizeZ)],Directions::right));
-    
-    if (((int)collapsedSlot->coordinates.X) % sizeX != 0)
-        neighbours.Add(TPair<AJcoGridSlot*,Directions>(grid[collapsedSlot->gridIndex - (sizeY * sizeZ)],Directions::left));
+        neighbours.Add(TPair<AJcoGridSlot*, Directions>(grid[collapsedSlot->gridIndex - 1], Directions::bottom));
 
+    if (((int)collapsedSlot->coordinates.Y + 1) % sizeY != 0)
+        neighbours.Add(TPair<AJcoGridSlot*, Directions>(grid[collapsedSlot->gridIndex + sizeZ], Directions::front));
+
+    if (((int)collapsedSlot->coordinates.Y) % sizeY != 0)
+        neighbours.Add(TPair<AJcoGridSlot*, Directions>(grid[collapsedSlot->gridIndex - sizeZ], Directions::back));
+
+    if (((int)collapsedSlot->coordinates.X + 1) % sizeX != 0)
+        neighbours.Add(TPair<AJcoGridSlot*, Directions>(grid[collapsedSlot->gridIndex + (sizeY * sizeZ)], Directions::right));
+
+    if (((int)collapsedSlot->coordinates.X) % sizeX != 0)
+        neighbours.Add(TPair<AJcoGridSlot*, Directions>(grid[collapsedSlot->gridIndex - (sizeY * sizeZ)], Directions::left));
 }
 
 
@@ -148,25 +146,56 @@ bool AJcoGrid::isCollapsed()
 
 void AJcoGrid::Collapse()
 {
-    AJcoGridSlot* slot = getMinEnthropySlot();
-    TRACE("min entropy slot found : %s", *slot->GetName())
+    TArray<AJcoGridSlot*> collapsedSlots;
 
-    UJcoWFCPossibility* possibility = slot->possibilities[FMath::RandRange(0, slot->possibilities.Num()-1)];
-    slot->possibilities.Empty();
-    slot->possibilities.Add(possibility);
-
-    Neighbours neighbours;
-    getNeibourghs(slot,neighbours);
-    //ajoute la notion de direction
-    //ce sont les voisins qui réstreignent leurs possibilités en fonction du slot que l'on vient de collapse
-    //je regarde les contraintes de direction du slot collapsed
-    //tout ce qui n'en fait pas partie est retiré de mes possibilités
-
-    PrintNeighbours(neighbours);
-
-    for (auto neighbour : neighbours)
+    while (!isCollapsed())
     {
-        neighbour.Key->RestrictPossibilities(slot,neighbour.Value);
+        AJcoGridSlot* slot = nullptr;
+        
+        if(collapsedSlots.IsEmpty())
+        {
+            collapsedSlots.Add(getMinEnthropySlot());
+            TRACE("min entropy slot found !")
+        }
+
+        slot = collapsedSlots.Pop();
+        TRACE("slot found : %s", *slot->GetName())
+
+
+        UJcoWFCPossibility* possibility = slot->possibilities[FMath::RandRange(0, slot->possibilities.Num() - 1)];
+        TRACE("collapsed slot value : %s", *possibility->GetName());
+        slot->possibilities.Empty();
+        slot->possibilities.Add(possibility);
+
+        Neighbours neighbours;
+        getNeibourghs(slot, neighbours);
+        //ajoute la notion de direction
+        //ce sont les voisins qui réstreignent leurs possibilités en fonction du slot que l'on vient de collapse
+        //je regarde les contraintes de direction du slot collapsed
+        //tout ce qui n'en fait pas partie est retiré de mes possibilités
+
+        PrintNeighbours(neighbours);
+
+        for (auto neighbour : neighbours)
+        {
+            bool restricted = neighbour.Key->RestrictPossibilities(slot, neighbour.Value);
+            if(restricted)
+            {
+                collapsedSlots.Add(neighbour.Key);
+            }
+        }
+    }
+
+    TRACE("Grid is fully collapsed !")
+    
+    DisplaySlots();
+}
+
+void AJcoGrid::DisplaySlots()
+{
+    for (auto slot : grid)
+    {
+        slot->Display();
     }
 }
 

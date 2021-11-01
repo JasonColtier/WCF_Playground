@@ -18,3 +18,15 @@ DECLARE_LOG_CATEGORY_EXTERN(WFCLog, Log, All);
     UE_LOG(WFCLog, Log, TEXT("%s() : %s"), FUNC_NAME, *Msg);\
 }
 
+#define TRACE_WARNING(Format, ...) \
+{ \
+const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
+UE_LOG(WFCLog, Warning, TEXT("%s() : %s"), FUNC_NAME, *Msg);\
+}
+
+#define TRACE_ERROR(Format, ...) \
+{ \
+const FString Msg = FString::Printf(TEXT(Format), ##__VA_ARGS__); \
+UE_LOG(WFCLog, Error, TEXT("%s() : %s"), FUNC_NAME, *Msg);\
+}
+

@@ -30,5 +30,8 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TArray<UJcoWFCPossibility*> possibilities;
 
-	void RestrictPossibilities(AJcoGridSlot* collapsedSlot,TEnumAsByte<Directions> dir);
+	bool RestrictPossibilities(AJcoGridSlot* collapsedSlot,TEnumAsByte<Directions> dir);
+
+
+	void Display();
 };

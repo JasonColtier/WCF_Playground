@@ -20,6 +20,9 @@ public:
     FString AssetName;
 
     UPROPERTY(EditAnywhere)
+    UStaticMesh* staticMesh;
+
+    UPROPERTY(EditAnywhere)
     bool symetryX;
 
     UPROPERTY(EditAnywhere)
